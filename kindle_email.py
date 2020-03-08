@@ -1,113 +1,142 @@
-import smtplib, codecs, random, os
+#! python3
+# -*- coding: utf-8 -*-
+
+import smtplib, codecs, random, logging, pathlib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 ### __ EMAIL CREDENTIALS __ ###
+
 direccion = "XXXX"
 passw = "XXXX"
 dest = "XXXX"
 
 ### __ PATHS AND FOLDERS __ ###
 
-folders=['Artículos/El Gato y La Caja','Artículos/Japón','Aviación','Economía - Negocios - Inversiones','Ficción','No Ficción', 'Python - Data']
-root_path = '/Users/agustin/Dropbox/Libros/Anotaciones y Subrayados/'
-quotes_file = 'Quotes/quotes.txt'
+root_path = pathlib.Path('/Users/agustin/Dropbox/Libros/Anotaciones y Subrayados/').resolve()   # Path to Main Folder
+dirs_generator = root_path.rglob("*.txt")                   # Generator of all txt files in directory and subdirectories 
+list_dirs_txt = []
 
-### __ HIGHLIGHTS SELECTION __ ###
+for l in dirs_generator:                                    # Append str of the path of the txt files to list
+    list_dirs_txt.append(str(l))
 
-bookshelf= []          # Empty list for all books paths
-for folder_name in folders:   # loop to get all books paths and add them to list
-    folder_path = root_path+folder_name
-    book_list = os.listdir(folder_path)
-    for book in book_list:
-        book_path = folder_path+"/"+book
-        bookshelf.append(book_path)
+### __ LOGGING CONFIGURATION __ ###
 
-book_selected = random.choice(bookshelf)  # Random choice of one book
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+f_handler = logging.FileHandler('/Users/agustin/Dropbox/Python_scripts/kindle_email/kindle_email_log.txt')
+f_handler.setLevel(logging.INFO)
+f_format = logging.Formatter('[%(asctime)s] | %(levelname)s | Line: %(lineno)d | Function Name: %(funcName)s | %(message)s', datefmt='%d/%m/%Y %H:%M:%S')
+f_handler.setFormatter(f_format)
+logger.addHandler(f_handler)
 
-f = codecs.open(book_selected, 'r', 'utf-8')  # Open file
+### __ FILES CLASSIFICATION __ ###
 
-txt = f.read()
-txt = txt.replace('\ufeff','')                    # Codification at the begining of the txt file
-txt_splited = txt.split('\n')                    # Split string in new lines
+quotes_files = []
+articles_files = [] 
+programming_files = []
+book_files = []
 
-title = txt_splited[0]     # Book title
-body = txt_splited[1:]     # Book highlights
+def highlights_clasificator(list_of_files_path):    # Function to classificate files
+    for f in list_of_files_path:  
+        if 'Quotes' in str(f):
+            quotes_files.append(f)
+        elif 'Art' in f and 'culos' in f :          # Artículos. Problem with accent
+            articles_files.append(f)
+        elif 'Programming' in str(f):
+            programming_files.append(f)
+        else:
+            book_files.append(f)
 
-body_clean = list()        # New list
+highlights_clasificator(list_dirs_txt)              # Running function to classificate            
 
-for b in body:             # Loop to remove empty highlights from list
-    bb = b.strip()
-    bb = bb.replace("*","")
-    if bb != "":
-        body_clean.append(bb)
+book_selected = random.choice(book_files)           # Random choice of one book
+article_selected = random.choice(articles_files)
+programming_selected = random.choice(programming_files)
+quote_selected = random.choice(quotes_files)
 
-try:
-    random_index = random.randrange(len(body_clean)-2)  # Select a Random Index from List of Highlights
-    final_list = []                    # New list
-    for i in range(3):                 # Select 3 continuous highlights based on the Random Index
-        iter = random_index+i
-        highlight = body_clean[iter]
-        final_list.append(highlight)
-except ValueError:                     # In case there are less than 3 highlights in the txt file
-        final_list = body_clean
+### __ HIGHLIGHTS SELECTION FUNCTION __ ###
 
-f.close() # close txt file
+def open_clean_select(file_path):               
+    file_path = pathlib.Path(file_path) 
+    file_name = file_path.name
 
-### __ QUOTE SELECTION __ ###
+    try:
+        logger.info(f'Opening file: {file_name}')
+        with codecs.open(file_path, 'r', 'utf-8') as file:  # Open file
+            txt = file.read()
+    except Exception as exc:
+        logger.error(f'Error while opening file: {exc}')
+        pass
+    
+    txt = txt.replace('\ufeff','')                    # Codification at the begining of the txt file
+    txt_splited = txt.split('\n')                    # Split string in new lines
 
-quotes_path=root_path+quotes_file
+    title = txt_splited[0]     # Book title
+    body = txt_splited[1:]     # Book highlights
+    body_clean = list()        # New list
 
-q = codecs.open(quotes_path, 'r', 'utf-8')  # Open file
-quotes_txt = q.read()
-quotes_txt = quotes_txt.replace('\ufeff','')                    # Codification at the begining of the txt file
-quotes_txt_splited = quotes_txt.split('\n')                    # Split string in new lines
-quotes_body = quotes_txt_splited[1:]     # Quotes list
+    for b in body:             # Loop to remove empty highlights from list
+        bb = b.strip()
+        bb = bb.replace("*","")
+        if bb != "":
+            body_clean.append(bb)
 
-quotes_body_clean = list()        # New list
+    try:
+        random_index = random.randrange(len(body_clean)-2)  # Select a Random Index from List of Highlights
+        final_list = []                        # New list
+        if file_name != 'quotes.txt':          # Not Quotes
+            for i in range(3):                 # Select 3 continuous highlights based on the Random Index
+                iter = random_index+i
+                highlight = body_clean[iter]
+                final_list.append(highlight)
+        else:                                  # Quotes
+            highlight = random.choice(body_clean)
+            final_list.append(highlight)
+    except ValueError:                     # In case there are less than 3 highlights in the txt file
+            final_list = body_clean
+    
+    if file_name == 'quotes.txt':
+        title = 'Quote of the day'
 
-for quo in quotes_body:             # Loop to remove empty highlights from list
-    qq = quo.strip()
-    qq = qq.replace("*","")
-    if qq != "":
-        quotes_body_clean.append(qq)
-
-quote_sel = random.choice(quotes_body_clean) # Select random quote from the list
-
-q.close() # close txt file
+    return title, final_list               # Tuple: (Title, [Highlights,])
 
 ### __ EMAIL GENERATION __ ###
 
 message = MIMEMultipart()                  # Email object creation
 message["Subject"]= "Daily highlights"     # Email subject
 
-title_message = """<br>
-        <font size='4'><u><b>""" + str(title) + """</b></u></font>
-        <br><br><br>"""
-html_message = MIMEText(title_message,'html')
-message.attach(html_message)               # Title of the book, attached to email body message
+def email_message_append(tuple_var):       # Input should be a tuple: (Title, [Highlights,]) 
+    title = tuple_var[0]
+    final_list = tuple_var[1]
 
-for f in final_list:
-    line = """<font size='3'><q>""" + str(f) + """</q></font><br><br>"""
-    html_message = MIMEText(line,'html')
-    message.attach(html_message)           # Higlights, attached to email body message
+    title_message = """<br>
+            <font size='4'><u><b>""" + str(title) + """</b></u></font>
+            <br><br><br>"""
+    html_message = MIMEText(title_message,'html')
+    message.attach(html_message)               # Title of the book, attached to email body message
 
-title_quote = """<br>
-        <font size='4'><u><b> Quote of the day </b></u></font>
-        <br><br><br>"""
-html_message = MIMEText(title_quote,'html')
-message.attach(html_message)             # Title of the quote, attached to email body message
+    for f in final_list:
+        line = """<font size='3'><q>""" + str(f) + """</q></font><br><br>"""
+        html_message = MIMEText(line,'html')
+        message.attach(html_message)           # Higlights, attached to email body message
+    
+# Email content creation #
 
-quote_text = """<font size='3'><q>""" + str(quote_sel) + """</q></font><br><br>"""
-html_message = MIMEText(quote_text,'html')
-message.attach(html_message)            # Quote, attached to email body message
+email_message_append(open_clean_select(book_selected))          
+email_message_append(open_clean_select(article_selected))
+email_message_append(open_clean_select(programming_selected))
+email_message_append(open_clean_select(quote_selected))
 
 # Server Connection #
-smtpObj = smtplib.SMTP_SSL('smtp.gmail.com', 465) # can be 465 (SSL) or 587
-smtpObj.ehlo() #saying 'hello'to the server
-smtpObj.login(direccion, passw)  # login to server
-smtpObj.sendmail(direccion, dest, message.as_string()) # sending email
-smtpObj.quit()
-
-## To-Do: Error handling. If folder no longer exists?
-## To-Do: Take paths and email credentials outside the code.
+try:
+    logger.info('Connecting to email server')
+    smtpObj = smtplib.SMTP_SSL('smtp.gmail.com', 465)        # can be 465 (SSL) or 587
+    smtpObj.ehlo()                                           # saying 'hello'to the server
+    smtpObj.login(direccion, passw)                          # login to server
+    smtpObj.sendmail(direccion, dest, message.as_string())   # sending email
+    smtpObj.quit()
+    logger.info('Email sent')    
+except Exception as exc:
+    logger.error(f'Error while connecting: {exc}')
+    pass
