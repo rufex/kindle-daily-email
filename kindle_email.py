@@ -7,10 +7,13 @@ direccion = "XXXX"
 passw = "XXXX"
 dest = "XXXX"
 
-### __ HIGHLIGHTS SELECTION __ ###
+### __ PATHS AND FOLDERS __ ###
 
 folders=['Artículos/El Gato y La Caja','Artículos/Japón','Aviación','Economía - Negocios - Inversiones','Ficción','No Ficción', 'Python - Data']
 root_path = '/Users/agustin/Dropbox/Libros/Anotaciones y Subrayados/'
+quotes_file = 'Quotes/quotes.txt'
+
+### __ HIGHLIGHTS SELECTION __ ###
 
 bookshelf= []          # Empty list for all books paths
 for folder_name in folders:   # loop to get all books paths and add them to list
@@ -51,6 +54,28 @@ except ValueError:                     # In case there are less than 3 highlight
 
 f.close() # close txt file
 
+### __ QUOTE SELECTION __ ###
+
+quotes_path=root_path+quotes_file
+
+q = codecs.open(quotes_path, 'r', 'utf-8')  # Open file
+quotes_txt = q.read()
+quotes_txt = quotes_txt.replace('\ufeff','')                    # Codification at the begining of the txt file
+quotes_txt_splited = quotes_txt.split('\n')                    # Split string in new lines
+quotes_body = quotes_txt_splited[1:]     # Quotes list
+
+quotes_body_clean = list()        # New list
+
+for quo in quotes_body:             # Loop to remove empty highlights from list
+    qq = quo.strip()
+    qq = qq.replace("*","")
+    if qq != "":
+        quotes_body_clean.append(qq)
+
+quote_sel = random.choice(quotes_body_clean) # Select random quote from the list
+
+q.close() # close txt file
+
 ### __ EMAIL GENERATION __ ###
 
 message = MIMEMultipart()                  # Email object creation
@@ -67,6 +92,17 @@ for f in final_list:
     html_message = MIMEText(line,'html')
     message.attach(html_message)           # Higlights, attached to email body message
 
+title_quote = """<br>
+        <font size='4'><u><b> Quote of the day </b></u></font>
+        <br><br><br>"""
+html_message = MIMEText(title_quote,'html')
+message.attach(html_message)             # Title of the quote, attached to email body message
+
+quote_text = """<font size='3'><q>""" + str(quote_sel) + """</q></font><br><br>"""
+html_message = MIMEText(quote_text,'html')
+message.attach(html_message)            # Quote, attached to email body message
+
+# Server Connection #
 smtpObj = smtplib.SMTP_SSL('smtp.gmail.com', 465) # can be 465 (SSL) or 587
 smtpObj.ehlo() #saying 'hello'to the server
 smtpObj.login(direccion, passw)  # login to server
