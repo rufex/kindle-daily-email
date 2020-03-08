@@ -1,0 +1,11 @@
+# List of files and folders to ignore in Git
+.DS_Store
+*.log
+*.sql
+/old_files/*
+/kindle_email_log.txt
+/personal_notes.md
+/config_kindle_mail.yml
+
+
+
