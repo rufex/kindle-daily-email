@@ -1,19 +1,21 @@
-#! python3
+#! usr/local/bin/python3
 # -*- coding: utf-8 -*-
 
-import smtplib, codecs, random, logging, pathlib
+import smtplib, codecs, random, logging, pathlib, yaml
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 ### __ EMAIL CREDENTIALS __ ###
 
-direccion = "XXXX"
-passw = "XXXX"
-dest = "XXXX"
+config = yaml.safe_load(open("config_kindle_mail.yml"))
+direccion = config["Config"]["direccion"]
+passw = config["Config"]["passw"]
+dest = config["Config"]["dest"]
 
 ### __ PATHS AND FOLDERS __ ###
 
-root_path = pathlib.Path('/Users/agustin/Dropbox/Libros/Anotaciones y Subrayados/').resolve()   # Path to Main Folder
+
+root_path = pathlib.Path(config["Paths"]["root_path"]).resolve()   # Path to Main Folder
 dirs_generator = root_path.rglob("*.txt")                   # Generator of all txt files in directory and subdirectories 
 list_dirs_txt = []
 
@@ -24,7 +26,7 @@ for l in dirs_generator:                                    # Append str of the 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-f_handler = logging.FileHandler('/Users/agustin/Dropbox/Python_scripts/kindle_email/kindle_email_log.txt')
+f_handler = logging.FileHandler(config["Paths"]["log_file"])
 f_handler.setLevel(logging.INFO)
 f_format = logging.Formatter('[%(asctime)s] | %(levelname)s | Line: %(lineno)d | Function Name: %(funcName)s | %(message)s', datefmt='%d/%m/%Y %H:%M:%S')
 f_handler.setFormatter(f_format)
