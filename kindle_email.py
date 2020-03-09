@@ -14,13 +14,9 @@ dest = config["Config"]["dest"]
 
 ### __ PATHS AND FOLDERS __ ###
 
-
 root_path = pathlib.Path(config["Paths"]["root_path"]).resolve()   # Path to Main Folder
-dirs_generator = root_path.rglob("*.txt")                   # Generator of all txt files in directory and subdirectories 
-list_dirs_txt = []
-
-for l in dirs_generator:                                    # Append str of the path of the txt files to list
-    list_dirs_txt.append(str(l))
+dirs_generator = root_path.rglob("*.txt")                          # Generator of all txt files in directory and subdirectories 
+list_dirs_txt = [str(l) for l in dirs_generator ]                  # Append str of the path of the txt files to list
 
 ### __ LOGGING CONFIGURATION __ ###
 
@@ -43,7 +39,7 @@ def highlights_clasificator(list_of_files_path):    # Function to classificate f
     for f in list_of_files_path:  
         if 'Quotes' in str(f):
             quotes_files.append(f)
-        elif 'Art' in f and 'culos' in f :          # Artículos. Problem with accent
+        elif 'Art' in f and 'culos' in f :          # Artículos. Problem with accent. Work around
             articles_files.append(f)
         elif 'Programming' in str(f):
             programming_files.append(f)
@@ -71,7 +67,7 @@ def open_clean_select(file_path):
         logger.error(f'Error while opening file: {exc}')
         pass
     
-    txt = txt.replace('\ufeff','')                    # Codification at the begining of the txt file
+    txt = txt.replace('\ufeff','')                   # Codification at the begining of the txt file
     txt_splited = txt.split('\n')                    # Split string in new lines
 
     title = txt_splited[0]     # Book title
@@ -131,6 +127,7 @@ email_message_append(open_clean_select(programming_selected))
 email_message_append(open_clean_select(quote_selected))
 
 # Server Connection #
+
 try:
     logger.info('Connecting to email server')
     smtpObj = smtplib.SMTP_SSL('smtp.gmail.com', 465)        # can be 465 (SSL) or 587
