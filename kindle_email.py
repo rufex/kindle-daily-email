@@ -1,13 +1,16 @@
-#! usr/local/bin/python3
+#! /Library/Frameworks/Python.framework/Versions/3.8/bin/python3
 # -*- coding: utf-8 -*-
 
 import smtplib, codecs, random, logging, pathlib, yaml
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+path_file = pathlib.Path(__file__).parent
+config_file_path = pathlib.Path.joinpath(path_file,"config_kindle_mail.yml")
+
 ### __ EMAIL CREDENTIALS __ ###
 
-config = yaml.safe_load(open("config_kindle_mail.yml"))
+config = yaml.safe_load(open(config_file_path))
 direccion = config["Config"]["direccion"]
 passw = config["Config"]["passw"]
 dest = config["Config"]["dest"]
