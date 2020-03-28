@@ -5,6 +5,7 @@
 # Description
 
 Script which choose random TXT files from directory (books highlights) and take up to 3 lines of text from each of them. Then, it generates and sends an email with them.
+It should be possible to adapt it to select diferent text files from your drive and generated random emails, not only for Kindle higlights, as it was originally intended for.
 I use crontab to run periodically (once a day) the script and receive random highlights.
 
 # CHANGELOG
