@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import smtplib, codecs, random, logging, pathlib, yaml
+from collections import defaultdict
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -33,28 +34,27 @@ logger.addHandler(f_handler)
 
 ### __ FILES CLASSIFICATION __ ###
 
-quotes_files = []
-articles_files = [] 
-programming_files = []
-book_files = []
+categories_names = ('Quotes', 'Programming', 'culos' ) #Problem with word "Artículos"
+categories_dict = defaultdict(list)
+picked_list = []
 
-def highlights_clasificator(list_of_files_path):    # Function to classificate files
-    for f in list_of_files_path:  
-        if 'Quotes' in str(f):
-            quotes_files.append(f)
-        elif 'Art' in f and 'culos' in f :          # Artículos. Problem with accent. Work around
-            articles_files.append(f)
-        elif 'Programming' in str(f):
-            programming_files.append(f)
-        else:
-            book_files.append(f)
+def highlights_clasificator(list_of_files_path):
+    for f in list_of_files_path:
+        used = False
+        for cat in categories_names:
+            if str(cat) in str(f):
+                categories_dict[cat].append(f)
+                used = True
+        if used != True:
+            categories_dict["Books"].append(f)
+
+def txt_picker(dict):                   # Random choice of one book
+    for values in dict.values():
+        picker = random.choice(values)
+        picked_list.append(picker)
 
 highlights_clasificator(list_dirs_txt)              # Running function to classificate            
-
-book_selected = random.choice(book_files)           # Random choice of one book
-article_selected = random.choice(articles_files)
-programming_selected = random.choice(programming_files)
-quote_selected = random.choice(quotes_files)
+txt_picker(categories_dict)       
 
 ### __ HIGHLIGHTS SELECTION FUNCTION __ ###
 
@@ -124,10 +124,8 @@ def email_message_append(tuple_var):       # Input should be a tuple: (Title, [H
     
 # Email content creation #
 
-email_message_append(open_clean_select(book_selected))          
-email_message_append(open_clean_select(article_selected))
-email_message_append(open_clean_select(programming_selected))
-email_message_append(open_clean_select(quote_selected))
+for txt in picked_list:
+    email_message_append(open_clean_select(txt))          
 
 # Server Connection #
 
