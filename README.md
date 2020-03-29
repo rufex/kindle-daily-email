@@ -8,6 +8,23 @@ Script which choose random TXT files from directory (books highlights) and take 
 It should be possible to adapt it to select diferent text files from your drive and generated random emails, not only for Kindle higlights, as it was originally intended for.
 I use crontab to run periodically (once a day) the script and receive random highlights.
 
+# YAML file
+
+Name:config_kindle_mail.yml
+
+Structure:
+
+```
+Config:
+  direccion: {email account}
+  passw: {password}
+  dest: {email account receiver}
+
+Paths:
+  root_path: {directory where files are stored}
+  log_file: {path to log file}
+```
+
 # CHANGELOG
 
 v2 --> Added selection of quote of the day.

@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import smtplib, codecs, random, logging, pathlib, yaml
+from unicodedata import normalize
 from collections import defaultdict
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 path_file = pathlib.Path(__file__).parent
 config_file_path = pathlib.Path.joinpath(path_file,"config_kindle_mail.yml")
+categories_names = ('Quotes', 'Programming', 'Artículos' )
 
 ### __ EMAIL CREDENTIALS __ ###
 
@@ -34,31 +36,35 @@ logger.addHandler(f_handler)
 
 ### __ FILES CLASSIFICATION __ ###
 
-categories_names = ('Quotes', 'Programming', 'culos' ) #Problem with word "Artículos"
-categories_dict = defaultdict(list)
-picked_list = []
-
 def highlights_clasificator(list_of_files_path):
+    """Separate files acording to the Categories defined
+    """
+    categories_dict = defaultdict(list)
     for f in list_of_files_path:
         used = False
         for cat in categories_names:
-            if str(cat) in str(f):
+            if normalize('NFC',cat) in normalize('NFC',f):
                 categories_dict[cat].append(f)
                 used = True
+                break
         if used != True:
             categories_dict["Books"].append(f)
+    return categories_dict
 
-def txt_picker(dict):                   # Random choice of one book
+def txt_picker(dict):
+    """ Random choice of one book
+    """
+    picked_list = list()
     for values in dict.values():
         picker = random.choice(values)
         picked_list.append(picker)
-
-highlights_clasificator(list_dirs_txt)              # Running function to classificate            
-txt_picker(categories_dict)       
+    return picked_list      
 
 ### __ HIGHLIGHTS SELECTION FUNCTION __ ###
 
-def open_clean_select(file_path):               
+def open_clean_select(file_path):
+    """Open file and select random lines
+    """               
     file_path = pathlib.Path(file_path) 
     file_name = file_path.name
 
@@ -108,6 +114,8 @@ message = MIMEMultipart()                  # Email object creation
 message["Subject"]= "Daily highlights"     # Email subject
 
 def email_message_append(tuple_var):       # Input should be a tuple: (Title, [Highlights,]) 
+    """ Generate email content
+    """
     title = tuple_var[0]
     final_list = tuple_var[1]
 
@@ -124,19 +132,31 @@ def email_message_append(tuple_var):       # Input should be a tuple: (Title, [H
     
 # Email content creation #
 
-for txt in picked_list:
-    email_message_append(open_clean_select(txt))          
+def email_generator(files):
+    """Open each file, select the random lines and generate the email content
+    """
+    for txt in files:
+        email_message_append(open_clean_select(txt))          
 
 # Server Connection #
 
-try:
-    logger.info('Connecting to email server')
-    smtpObj = smtplib.SMTP_SSL('smtp.gmail.com', 465)        # can be 465 (SSL) or 587
-    smtpObj.ehlo()                                           # saying 'hello'to the server
-    smtpObj.login(direccion, passw)                          # login to server
-    smtpObj.sendmail(direccion, dest, message.as_string())   # sending email
-    smtpObj.quit()
-    logger.info('Email sent')    
-except Exception as exc:
-    logger.error(f'Error while connecting: {exc}')
-    pass
+def send_email():
+    """Conect to server and send the email
+    """
+    try:
+        logger.info('Connecting to email server')
+        smtpObj = smtplib.SMTP_SSL('smtp.gmail.com', 465)        # can be 465 (SSL) or 587
+        smtpObj.ehlo()                                           # saying 'hello'to the server
+        smtpObj.login(direccion, passw)                          # login to server
+        smtpObj.sendmail(direccion, dest, message.as_string())   # sending email
+        smtpObj.quit()
+        logger.info('Email sent')    
+    except Exception as exc:
+        logger.error(f'Error while connecting: {exc}')
+        pass
+
+if __name__ == "__main__":
+    classified_files = highlights_clasificator(list_dirs_txt) 
+    selected_files = txt_picker(classified_files) 
+    email_generator(selected_files)
+    send_email()
