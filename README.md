@@ -27,6 +27,5 @@ Paths:
 
 # CHANGELOG
 
-v2 --> Added selection of quote of the day.
-v3 --> Added logging to txt, pathlib for input files, section of articles and defined functions.
-v4 --> Removed email credentials from code and moved to a YAML file
+v2 --> Added logging to txt, pathlib for input files, section of articles and defined functions.
+v3 --> Removed email credentials from code and moved to a YAML file
