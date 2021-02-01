@@ -1,4 +1,4 @@
-#! /Library/Frameworks/Python.framework/Versions/3.8/bin/python3
+#! usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import smtplib, codecs, random, logging, pathlib, yaml
@@ -14,7 +14,7 @@ categories_names = ('Quotes', 'Programming', 'Artículos' )
 ### __ EMAIL CREDENTIALS __ ###
 
 config = yaml.safe_load(open(config_file_path))
-direccion = config["Config"]["direccion"]
+email_address = config["Config"]["address"]
 passw = config["Config"]["passw"]
 dest = config["Config"]["dest"]
 
@@ -147,8 +147,8 @@ def send_email():
         logger.info('Connecting to email server')
         smtpObj = smtplib.SMTP_SSL('smtp.gmail.com', 465)        # can be 465 (SSL) or 587
         smtpObj.ehlo()                                           # saying 'hello'to the server
-        smtpObj.login(direccion, passw)                          # login to server
-        smtpObj.sendmail(direccion, dest, message.as_string())   # sending email
+        smtpObj.login(email_address, passw)                          # login to server
+        smtpObj.sendmail(email_address, dest, message.as_string())   # sending email
         smtpObj.quit()
         logger.info('Email sent')    
     except Exception as exc:

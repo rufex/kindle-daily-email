@@ -1,0 +1,9 @@
+# Credentials for Email
+Config:
+  address: { email }
+  passw: { password }
+  dest: { receiver }
+
+Paths:
+  root_path: { directory where files are stored }
+  log_file: { path to log file }

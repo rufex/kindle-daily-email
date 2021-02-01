@@ -16,11 +16,11 @@ Structure:
 
 ```
 Config:
-  direccion: {email account}
-  passw: {password}
+  address: { email address }
+  passw: { password }
   dest: {email account receiver}
 
 Paths:
-  root_path: {directory where files are stored}
-  log_file: {path to log file}
+  root_path: { directory where files are stored }
+  log_file: { path to log file }
 ```
